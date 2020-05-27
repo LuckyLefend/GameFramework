@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
@@ -14,6 +14,15 @@ namespace GameFramework.Download
     /// </summary>
     public interface IDownloadManager
     {
+        /// <summary>
+        /// 获取或设置下载是否被暂停。
+        /// </summary>
+        bool Paused
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// 获取下载代理总数量。
         /// </summary>
@@ -111,9 +120,28 @@ namespace GameFramework.Download
         /// </summary>
         /// <param name="downloadPath">下载后存放路径。</param>
         /// <param name="downloadUri">原始下载地址。</param>
+        /// <param name="priority">下载任务的优先级。</param>
+        /// <returns>新增下载任务的序列编号。</returns>
+        int AddDownload(string downloadPath, string downloadUri, int priority);
+
+        /// <summary>
+        /// 增加下载任务。
+        /// </summary>
+        /// <param name="downloadPath">下载后存放路径。</param>
+        /// <param name="downloadUri">原始下载地址。</param>
         /// <param name="userData">用户自定义数据。</param>
         /// <returns>新增下载任务的序列编号。</returns>
         int AddDownload(string downloadPath, string downloadUri, object userData);
+
+        /// <summary>
+        /// 增加下载任务。
+        /// </summary>
+        /// <param name="downloadPath">下载后存放路径。</param>
+        /// <param name="downloadUri">原始下载地址。</param>
+        /// <param name="priority">下载任务的优先级。</param>
+        /// <param name="userData">用户自定义数据。</param>
+        /// <returns>新增下载任务的序列编号。</returns>
+        int AddDownload(string downloadPath, string downloadUri, int priority, object userData);
 
         /// <summary>
         /// 移除下载任务。
@@ -125,6 +153,12 @@ namespace GameFramework.Download
         /// <summary>
         /// 移除所有下载任务。
         /// </summary>
-        void RemoveAllDownload();
+        void RemoveAllDownloads();
+
+        /// <summary>
+        /// 获取所有下载任务的信息。
+        /// </summary>
+        /// <returns>所有下载任务的信息。</returns>
+        TaskInfo[] GetAllDownloadInfos();
     }
 }

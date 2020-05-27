@@ -1,11 +1,12 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace GameFramework.Network
 {
@@ -31,11 +32,6 @@ namespace GameFramework.Network
         /// 网络连接关闭事件。
         /// </summary>
         event EventHandler<NetworkClosedEventArgs> NetworkClosed;
-
-        /// <summary>
-        /// 发送网络消息包事件。
-        /// </summary>
-        event EventHandler<NetworkSendPacketEventArgs> NetworkSendPacket;
 
         /// <summary>
         /// 网络心跳包丢失事件。
@@ -73,12 +69,19 @@ namespace GameFramework.Network
         INetworkChannel[] GetAllNetworkChannels();
 
         /// <summary>
+        /// 获取所有网络频道。
+        /// </summary>
+        /// <param name="results">所有网络频道。</param>
+        void GetAllNetworkChannels(List<INetworkChannel> results);
+
+        /// <summary>
         /// 创建网络频道。
         /// </summary>
         /// <param name="name">网络频道名称。</param>
+        /// <param name="serviceType">网络服务类型。</param>
         /// <param name="networkChannelHelper">网络频道辅助器。</param>
         /// <returns>要创建的网络频道。</returns>
-        INetworkChannel CreateNetworkChannel(string name, INetworkChannelHelper networkChannelHelper);
+        INetworkChannel CreateNetworkChannel(string name, ServiceType serviceType, INetworkChannelHelper networkChannelHelper);
 
         /// <summary>
         /// 销毁网络频道。

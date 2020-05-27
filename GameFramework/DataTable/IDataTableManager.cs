@@ -1,12 +1,13 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework.Resource;
 using System;
+using System.Collections.Generic;
 
 namespace GameFramework.DataTable
 {
@@ -65,8 +66,23 @@ namespace GameFramework.DataTable
         /// 加载数据表。
         /// </summary>
         /// <param name="dataTableAssetName">数据表资源名称。</param>
+        /// <param name="priority">加载数据表资源的优先级。</param>
+        void LoadDataTable(string dataTableAssetName, int priority);
+
+        /// <summary>
+        /// 加载数据表。
+        /// </summary>
+        /// <param name="dataTableAssetName">数据表资源名称。</param>
         /// <param name="userData">用户自定义数据。</param>
         void LoadDataTable(string dataTableAssetName, object userData);
+
+        /// <summary>
+        /// 加载数据表。
+        /// </summary>
+        /// <param name="dataTableAssetName">数据表资源名称。</param>
+        /// <param name="priority">加载数据表资源的优先级。</param>
+        /// <param name="userData">用户自定义数据。</param>
+        void LoadDataTable(string dataTableAssetName, int priority, object userData);
 
         /// <summary>
         /// 是否存在数据表。
@@ -135,38 +151,44 @@ namespace GameFramework.DataTable
         DataTableBase[] GetAllDataTables();
 
         /// <summary>
+        /// 获取所有数据表。
+        /// </summary>
+        /// <param name="results">所有数据表。</param>
+        void GetAllDataTables(List<DataTableBase> results);
+
+        /// <summary>
         /// 创建数据表。
         /// </summary>
         /// <typeparam name="T">数据表行的类型。</typeparam>
-        /// <param name="text">要解析的数据表文本。</param>
+        /// <param name="dataTableData">要解析的数据表数据。</param>
         /// <returns>要创建的数据表。</returns>
-        IDataTable<T> CreateDataTable<T>(string text) where T : class, IDataRow, new();
+        IDataTable<T> CreateDataTable<T>(object dataTableData) where T : class, IDataRow, new();
 
         /// <summary>
         /// 创建数据表。
         /// </summary>
         /// <param name="dataRowType">数据表行的类型。</param>
-        /// <param name="text">要解析的数据表文本。</param>
+        /// <param name="dataTableData">要解析的数据表数据。</param>
         /// <returns>要创建的数据表。</returns>
-        DataTableBase CreateDataTable(Type dataRowType, string text);
+        DataTableBase CreateDataTable(Type dataRowType, object dataTableData);
 
         /// <summary>
         /// 创建数据表。
         /// </summary>
         /// <typeparam name="T">数据表行的类型。</typeparam>
         /// <param name="name">数据表名称。</param>
-        /// <param name="text">要解析的数据表文本。</param>
+        /// <param name="dataTableData">要解析的数据表数据。</param>
         /// <returns>要创建的数据表。</returns>
-        IDataTable<T> CreateDataTable<T>(string name, string text) where T : class, IDataRow, new();
+        IDataTable<T> CreateDataTable<T>(string name, object dataTableData) where T : class, IDataRow, new();
 
         /// <summary>
         /// 创建数据表。
         /// </summary>
         /// <param name="dataRowType">数据表行的类型。</param>
         /// <param name="name">数据表名称。</param>
-        /// <param name="text">要解析的数据表文本。</param>
+        /// <param name="dataTableData">要解析的数据表数据。</param>
         /// <returns>要创建的数据表。</returns>
-        DataTableBase CreateDataTable(Type dataRowType, string name, string text);
+        DataTableBase CreateDataTable(Type dataRowType, string name, object dataTableData);
 
         /// <summary>
         /// 销毁数据表。
@@ -197,5 +219,20 @@ namespace GameFramework.DataTable
         /// <param name="name">数据表名称。</param>
         /// <returns>是否销毁数据表成功。</returns>
         bool DestroyDataTable(Type dataRowType, string name);
+
+        /// <summary>
+        /// 销毁数据表。
+        /// </summary>
+        /// <typeparam name="T">数据表行的类型。</typeparam>
+        /// <param name="dataTable">要销毁的数据表。</param>
+        /// <returns>是否销毁数据表成功。</returns>
+        bool DestroyDataTable<T>(IDataTable<T> dataTable) where T : IDataRow;
+
+        /// <summary>
+        /// 销毁数据表。
+        /// </summary>
+        /// <param name="dataTable">要销毁的数据表。</param>
+        /// <returns>是否销毁数据表成功。</returns>
+        bool DestroyDataTable(DataTableBase dataTable);
     }
 }

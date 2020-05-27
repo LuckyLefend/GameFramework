@@ -1,15 +1,15 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 namespace GameFramework.Resource
 {
-    internal partial class ResourceManager
+    internal sealed partial class ResourceManager : GameFrameworkModule, IResourceManager
     {
-        private partial class ResourceChecker
+        private sealed partial class ResourceChecker
         {
             /// <summary>
             /// 资源检查信息。
@@ -137,7 +137,7 @@ namespace GameFramework.Resource
                 {
                     if (m_VersionInfo.Exist)
                     {
-                        throw new GameFrameworkException(string.Format("You must set version info of '{0}' only once.", m_ResourceName.FullName));
+                        throw new GameFrameworkException(Utility.Text.Format("You must set version info of '{0}' only once.", m_ResourceName.FullName));
                     }
 
                     m_VersionInfo = new RemoteVersionInfo(loadType, length, hashCode, zipLength, zipHashCode);
@@ -153,7 +153,7 @@ namespace GameFramework.Resource
                 {
                     if (m_ReadOnlyInfo.Exist)
                     {
-                        throw new GameFrameworkException(string.Format("You must set readonly info of '{0}' only once.", m_ResourceName.FullName));
+                        throw new GameFrameworkException(Utility.Text.Format("You must set readonly info of '{0}' only once.", m_ResourceName.FullName));
                     }
 
                     m_ReadOnlyInfo = new LocalVersionInfo(loadType, length, hashCode);
@@ -169,7 +169,7 @@ namespace GameFramework.Resource
                 {
                     if (m_ReadWriteInfo.Exist)
                     {
-                        throw new GameFrameworkException(string.Format("You must set read-write info of '{0}' only once.", m_ResourceName.FullName));
+                        throw new GameFrameworkException(Utility.Text.Format("You must set read-write info of '{0}' only once.", m_ResourceName.FullName));
                     }
 
                     m_ReadWriteInfo = new LocalVersionInfo(loadType, length, hashCode);

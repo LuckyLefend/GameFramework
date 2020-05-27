@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace GameFramework.ObjectPool
 {
-    internal partial class ObjectPoolManager
+    internal sealed partial class ObjectPoolManager : GameFrameworkModule, IObjectPoolManager
     {
         /// <summary>
         /// 对象池。
@@ -18,7 +18,11 @@ namespace GameFramework.ObjectPool
         /// <typeparam name="T">对象类型。</typeparam>
         private sealed class ObjectPool<T> : ObjectPoolBase, IObjectPool<T> where T : ObjectBase
         {
-            private readonly LinkedList<Object<T>> m_Objects;
+            private readonly GameFrameworkMultiDictionary<string, Object<T>> m_Objects;
+            private readonly Dictionary<object, Object<T>> m_ObjectMap;
+            private readonly ReleaseObjectFilterCallback<T> m_DefaultReleaseObjectFilterCallback;
+            private readonly List<T> m_CachedCanReleaseObjects;
+            private readonly List<T> m_CachedToReleaseObjects;
             private readonly bool m_AllowMultiSpawn;
             private float m_AutoReleaseInterval;
             private int m_Capacity;
@@ -31,15 +35,20 @@ namespace GameFramework.ObjectPool
             /// </summary>
             /// <param name="name">对象池名称。</param>
             /// <param name="allowMultiSpawn">是否允许对象被多次获取。</param>
+            /// <param name="autoReleaseInterval">对象池自动释放可释放对象的间隔秒数。</param>
             /// <param name="capacity">对象池的容量。</param>
             /// <param name="expireTime">对象池对象过期秒数。</param>
             /// <param name="priority">对象池的优先级。</param>
-            public ObjectPool(string name, bool allowMultiSpawn, int capacity, float expireTime, int priority)
+            public ObjectPool(string name, bool allowMultiSpawn, float autoReleaseInterval, int capacity, float expireTime, int priority)
                 : base(name)
             {
-                m_Objects = new LinkedList<Object<T>>();
+                m_Objects = new GameFrameworkMultiDictionary<string, Object<T>>();
+                m_ObjectMap = new Dictionary<object, Object<T>>();
+                m_DefaultReleaseObjectFilterCallback = DefaultReleaseObjectFilterCallback;
+                m_CachedCanReleaseObjects = new List<T>();
+                m_CachedToReleaseObjects = new List<T>();
                 m_AllowMultiSpawn = allowMultiSpawn;
-                m_AutoReleaseInterval = expireTime;
+                m_AutoReleaseInterval = autoReleaseInterval;
                 Capacity = capacity;
                 ExpireTime = expireTime;
                 m_Priority = priority;
@@ -64,7 +73,7 @@ namespace GameFramework.ObjectPool
             {
                 get
                 {
-                    return m_Objects.Count;
+                    return m_ObjectMap.Count;
                 }
             }
 
@@ -75,7 +84,8 @@ namespace GameFramework.ObjectPool
             {
                 get
                 {
-                    return GetCanReleaseObjects().Count;
+                    GetCanReleaseObjects(m_CachedCanReleaseObjects);
+                    return m_CachedCanReleaseObjects.Count;
                 }
             }
 
@@ -126,7 +136,6 @@ namespace GameFramework.ObjectPool
                         return;
                     }
 
-                    Log.Debug("Object pool '{0}' capacity changed from '{1}' to '{2}'.", Utility.Text.GetFullName<T>(Name), m_Capacity.ToString(), value.ToString());
                     m_Capacity = value;
                     Release();
                 }
@@ -154,7 +163,6 @@ namespace GameFramework.ObjectPool
                         return;
                     }
 
-                    Log.Debug("Object pool '{0}' expire time changed from '{1}' to '{2}'.", Utility.Text.GetFullName<T>(Name), m_ExpireTime.ToString(), value.ToString());
                     m_ExpireTime = value;
                     Release();
                 }
@@ -187,10 +195,14 @@ namespace GameFramework.ObjectPool
                     throw new GameFrameworkException("Object is invalid.");
                 }
 
-                Log.Debug(spawned ? "Object pool '{0}' create and spawned '{1}'." : "Object pool '{0}' create '{1}'.", Utility.Text.GetFullName<T>(Name), obj.Name);
-                m_Objects.AddLast(new Object<T>(obj, spawned));
+                Object<T> internalObject = Object<T>.Create(obj, spawned);
+                m_Objects.Add(obj.Name, internalObject);
+                m_ObjectMap.Add(obj.Target, internalObject);
 
-                Release();
+                if (Count > m_Capacity)
+                {
+                    Release();
+                }
             }
 
             /// <summary>
@@ -209,16 +221,15 @@ namespace GameFramework.ObjectPool
             /// <returns>要检查的对象是否存在。</returns>
             public bool CanSpawn(string name)
             {
-                foreach (Object<T> obj in m_Objects)
+                GameFrameworkLinkedListRange<Object<T>> objectRange = default(GameFrameworkLinkedListRange<Object<T>>);
+                if (m_Objects.TryGetValue(name, out objectRange))
                 {
-                    if (obj.Name != name)
+                    foreach (Object<T> internalObject in objectRange)
                     {
-                        continue;
-                    }
-
-                    if (m_AllowMultiSpawn || !obj.IsInUse)
-                    {
-                        return true;
+                        if (m_AllowMultiSpawn || !internalObject.IsInUse)
+                        {
+                            return true;
+                        }
                     }
                 }
 
@@ -241,17 +252,15 @@ namespace GameFramework.ObjectPool
             /// <returns>要获取的对象。</returns>
             public T Spawn(string name)
             {
-                foreach (Object<T> obj in m_Objects)
+                GameFrameworkLinkedListRange<Object<T>> objectRange = default(GameFrameworkLinkedListRange<Object<T>>);
+                if (m_Objects.TryGetValue(name, out objectRange))
                 {
-                    if (obj.Name != name)
+                    foreach (Object<T> internalObject in objectRange)
                     {
-                        continue;
-                    }
-
-                    if (m_AllowMultiSpawn || !obj.IsInUse)
-                    {
-                        Log.Debug("Object pool '{0}' spawn '{1}'.", Utility.Text.GetFullName<T>(Name), obj.Peek().Name);
-                        return obj.Spawn();
+                        if (m_AllowMultiSpawn || !internalObject.IsInUse)
+                        {
+                            return internalObject.Spawn();
+                        }
                     }
                 }
 
@@ -261,7 +270,7 @@ namespace GameFramework.ObjectPool
             /// <summary>
             /// 回收对象。
             /// </summary>
-            /// <param name="obj">要回收的内部对象。</param>
+            /// <param name="obj">要回收的对象。</param>
             public void Unspawn(T obj)
             {
                 if (obj == null)
@@ -283,24 +292,25 @@ namespace GameFramework.ObjectPool
                     throw new GameFrameworkException("Target is invalid.");
                 }
 
-                foreach (Object<T> obj in m_Objects)
+                Object<T> internalObject = GetObject(target);
+                if (internalObject != null)
                 {
-                    if (obj.Peek().Target == target)
+                    internalObject.Unspawn();
+                    if (Count > m_Capacity && internalObject.SpawnCount <= 0)
                     {
-                        Log.Debug("Object pool '{0}' unspawn '{1}'.", Utility.Text.GetFullName<T>(Name), obj.Peek().Name);
-                        obj.Unspawn();
                         Release();
-                        return;
                     }
                 }
-
-                throw new GameFrameworkException(string.Format("Can not find target in object pool '{0}'.", Utility.Text.GetFullName<T>(Name)));
+                else
+                {
+                    throw new GameFrameworkException(Utility.Text.Format("Can not find target in object pool '{0}', target type is '{1}', target value is '{2}'.", new TypeNamePair(typeof(T), Name).ToString(), target.GetType().FullName, target.ToString()));
+                }
             }
 
             /// <summary>
             /// 设置对象是否被加锁。
             /// </summary>
-            /// <param name="obj">要设置被加锁的内部对象。</param>
+            /// <param name="obj">要设置被加锁的对象。</param>
             /// <param name="locked">是否被加锁。</param>
             public void SetLocked(T obj, bool locked)
             {
@@ -324,23 +334,21 @@ namespace GameFramework.ObjectPool
                     throw new GameFrameworkException("Target is invalid.");
                 }
 
-                foreach (Object<T> obj in m_Objects)
+                Object<T> internalObject = GetObject(target);
+                if (internalObject != null)
                 {
-                    if (obj.Peek().Target == target)
-                    {
-                        Log.Debug("Object pool '{0}' set locked '{1}' to '{2}.", Utility.Text.GetFullName<T>(Name), obj.Peek().Name, locked.ToString());
-                        obj.Locked = locked;
-                        return;
-                    }
+                    internalObject.Locked = locked;
                 }
-
-                throw new GameFrameworkException(string.Format("Can not find target in object pool '{0}'.", Utility.Text.GetFullName<T>(Name)));
+                else
+                {
+                    throw new GameFrameworkException(Utility.Text.Format("Can not find target in object pool '{0}', target type is '{1}', target value is '{2}'.", new TypeNamePair(typeof(T), Name).ToString(), target.GetType().FullName, target.ToString()));
+                }
             }
 
             /// <summary>
             /// 设置对象的优先级。
             /// </summary>
-            /// <param name="obj">要设置优先级的内部对象。</param>
+            /// <param name="obj">要设置优先级的对象。</param>
             /// <param name="priority">优先级。</param>
             public void SetPriority(T obj, int priority)
             {
@@ -364,17 +372,15 @@ namespace GameFramework.ObjectPool
                     throw new GameFrameworkException("Target is invalid.");
                 }
 
-                foreach (Object<T> obj in m_Objects)
+                Object<T> internalObject = GetObject(target);
+                if (internalObject != null)
                 {
-                    if (obj.Peek().Target == target)
-                    {
-                        Log.Debug("Object pool '{0}' set priority '{1}' to '{2}.", Utility.Text.GetFullName<T>(Name), obj.Peek().Name, priority.ToString());
-                        obj.Priority = priority;
-                        return;
-                    }
+                    internalObject.Priority = priority;
                 }
-
-                throw new GameFrameworkException(string.Format("Can not find target in object pool '{0}'.", Utility.Text.GetFullName<T>(Name)));
+                else
+                {
+                    throw new GameFrameworkException(Utility.Text.Format("Can not find target in object pool '{0}', target type is '{1}', target value is '{2}'.", new TypeNamePair(typeof(T), Name).ToString(), target.GetType().FullName, target.ToString()));
+                }
             }
 
             /// <summary>
@@ -382,7 +388,7 @@ namespace GameFramework.ObjectPool
             /// </summary>
             public override void Release()
             {
-                Release(m_Objects.Count - m_Capacity, DefaultReleaseObjectFilterCallback);
+                Release(Count - m_Capacity, m_DefaultReleaseObjectFilterCallback);
             }
 
             /// <summary>
@@ -391,7 +397,7 @@ namespace GameFramework.ObjectPool
             /// <param name="toReleaseCount">尝试释放对象数量。</param>
             public override void Release(int toReleaseCount)
             {
-                Release(toReleaseCount, DefaultReleaseObjectFilterCallback);
+                Release(toReleaseCount, m_DefaultReleaseObjectFilterCallback);
             }
 
             /// <summary>
@@ -400,7 +406,7 @@ namespace GameFramework.ObjectPool
             /// <param name="releaseObjectFilterCallback">释放对象筛选函数。</param>
             public void Release(ReleaseObjectFilterCallback<T> releaseObjectFilterCallback)
             {
-                Release(m_Objects.Count - m_Capacity, releaseObjectFilterCallback);
+                Release(Count - m_Capacity, releaseObjectFilterCallback);
             }
 
             /// <summary>
@@ -415,7 +421,6 @@ namespace GameFramework.ObjectPool
                     throw new GameFrameworkException("Release object filter callback is invalid.");
                 }
 
-                m_AutoReleaseTime = 0f;
                 if (toReleaseCount < 0)
                 {
                     toReleaseCount = 0;
@@ -427,39 +432,17 @@ namespace GameFramework.ObjectPool
                     expireTime = DateTime.Now.AddSeconds(-m_ExpireTime);
                 }
 
-                LinkedList<T> canReleaseObjects = GetCanReleaseObjects();
-                LinkedList<T> toReleaseObjects = releaseObjectFilterCallback(canReleaseObjects, toReleaseCount, expireTime);
+                m_AutoReleaseTime = 0f;
+                GetCanReleaseObjects(m_CachedCanReleaseObjects);
+                List<T> toReleaseObjects = releaseObjectFilterCallback(m_CachedCanReleaseObjects, toReleaseCount, expireTime);
                 if (toReleaseObjects == null || toReleaseObjects.Count <= 0)
                 {
                     return;
                 }
 
-                foreach (ObjectBase toReleaseObject in toReleaseObjects)
+                foreach (T toReleaseObject in toReleaseObjects)
                 {
-                    if (toReleaseObject == null)
-                    {
-                        throw new GameFrameworkException("Can not release null object.");
-                    }
-
-                    bool found = false;
-                    foreach (Object<T> obj in m_Objects)
-                    {
-                        if (obj.Peek() != toReleaseObject)
-                        {
-                            continue;
-                        }
-
-                        m_Objects.Remove(obj);
-                        obj.Release();
-                        Log.Debug("Object pool '{0}' release '{1}'.", Utility.Text.GetFullName<T>(Name), toReleaseObject.Name);
-                        found = true;
-                        break;
-                    }
-
-                    if (!found)
-                    {
-                        throw new GameFrameworkException("Can not release object which is not found.");
-                    }
+                    ReleaseObject(toReleaseObject);
                 }
             }
 
@@ -468,20 +451,11 @@ namespace GameFramework.ObjectPool
             /// </summary>
             public override void ReleaseAllUnused()
             {
-                LinkedListNode<Object<T>> current = m_Objects.First;
-                while (current != null)
+                m_AutoReleaseTime = 0f;
+                GetCanReleaseObjects(m_CachedCanReleaseObjects);
+                foreach (T toReleaseObject in m_CachedCanReleaseObjects)
                 {
-                    if (current.Value.IsInUse || current.Value.Locked)
-                    {
-                        current = current.Next;
-                        continue;
-                    }
-
-                    LinkedListNode<Object<T>> next = current.Next;
-                    m_Objects.Remove(current);
-                    current.Value.Release();
-                    Log.Debug("Object pool '{0}' release '{1}'.", Utility.Text.GetFullName<T>(Name), current.Value.Name);
-                    current = next;
+                    ReleaseObject(toReleaseObject);
                 }
             }
 
@@ -491,14 +465,16 @@ namespace GameFramework.ObjectPool
             /// <returns>所有对象信息。</returns>
             public override ObjectInfo[] GetAllObjectInfos()
             {
-                int index = 0;
-                ObjectInfo[] objectInfos = new ObjectInfo[m_Objects.Count];
-                foreach (Object<T> obj in m_Objects)
+                List<ObjectInfo> results = new List<ObjectInfo>();
+                foreach (KeyValuePair<string, GameFrameworkLinkedListRange<Object<T>>> objectRanges in m_Objects)
                 {
-                    objectInfos[index++] = new ObjectInfo(obj.Name, obj.Locked, obj.Priority, obj.LastUseTime, obj.SpawnCount);
+                    foreach (Object<T> internalObject in objectRanges.Value)
+                    {
+                        results.Add(new ObjectInfo(internalObject.Name, internalObject.Locked, internalObject.CustomCanReleaseFlag, internalObject.Priority, internalObject.LastUseTime, internalObject.SpawnCount));
+                    }
                 }
 
-                return objectInfos;
+                return results.ToArray();
             }
 
             internal override void Update(float elapseSeconds, float realElapseSeconds)
@@ -509,82 +485,116 @@ namespace GameFramework.ObjectPool
                     return;
                 }
 
-                Log.Debug("Object pool '{0}' auto release start.", Utility.Text.GetFullName<T>(Name));
                 Release();
-                Log.Debug("Object pool '{0}' auto release complete.", Utility.Text.GetFullName<T>(Name));
             }
 
             internal override void Shutdown()
             {
-                LinkedListNode<Object<T>> current = m_Objects.First;
-                while (current != null)
+                foreach (KeyValuePair<object, Object<T>> objectInMap in m_ObjectMap)
                 {
-                    LinkedListNode<Object<T>> next = current.Next;
-                    m_Objects.Remove(current);
-                    current.Value.Release();
-                    Log.Debug("Object pool '{0}' release '{1}'.", Utility.Text.GetFullName<T>(Name), current.Value.Name);
-                    current = next;
+                    objectInMap.Value.Release(true);
+                    ReferencePool.Release(objectInMap.Value);
                 }
+
+                m_Objects.Clear();
+                m_ObjectMap.Clear();
+                m_CachedCanReleaseObjects.Clear();
+                m_CachedToReleaseObjects.Clear();
             }
 
-            private LinkedList<T> GetCanReleaseObjects()
+            private Object<T> GetObject(object target)
             {
-                LinkedList<T> canReleaseObjects = new LinkedList<T>();
-
-                foreach (Object<T> obj in m_Objects)
+                if (target == null)
                 {
-                    if (obj.IsInUse || obj.Locked)
+                    throw new GameFrameworkException("Target is invalid.");
+                }
+
+                Object<T> internalObject = null;
+                if (m_ObjectMap.TryGetValue(target, out internalObject))
+                {
+                    return internalObject;
+                }
+
+                return null;
+            }
+
+            private void ReleaseObject(T obj)
+            {
+                if (obj == null)
+                {
+                    throw new GameFrameworkException("Object is invalid.");
+                }
+
+                Object<T> internalObject = GetObject(obj.Target);
+                if (internalObject == null)
+                {
+                    throw new GameFrameworkException("Can not release object which is not found.");
+                }
+
+                m_Objects.Remove(obj.Name, internalObject);
+                m_ObjectMap.Remove(obj.Target);
+
+                internalObject.Release(false);
+                ReferencePool.Release(internalObject);
+            }
+
+            private void GetCanReleaseObjects(List<T> results)
+            {
+                if (results == null)
+                {
+                    throw new GameFrameworkException("Results is invalid.");
+                }
+
+                results.Clear();
+                foreach (KeyValuePair<object, Object<T>> objectInMap in m_ObjectMap)
+                {
+                    Object<T> internalObject = objectInMap.Value;
+                    if (internalObject.IsInUse || internalObject.Locked || !internalObject.CustomCanReleaseFlag)
                     {
                         continue;
                     }
 
-                    canReleaseObjects.AddLast(obj.Peek());
+                    results.Add(internalObject.Peek());
                 }
-
-                return canReleaseObjects;
             }
 
-            private LinkedList<T> DefaultReleaseObjectFilterCallback(LinkedList<T> candidateObjects, int toReleaseCount, DateTime expireTime)
+            private List<T> DefaultReleaseObjectFilterCallback(List<T> candidateObjects, int toReleaseCount, DateTime expireTime)
             {
-                LinkedList<T> toReleaseObjects = new LinkedList<T>();
+                m_CachedToReleaseObjects.Clear();
 
                 if (expireTime > DateTime.MinValue)
                 {
-                    LinkedListNode<T> current = candidateObjects.First;
-                    while (current != null)
+                    for (int i = candidateObjects.Count - 1; i >= 0; i--)
                     {
-                        if (current.Value.LastUseTime <= expireTime)
+                        if (candidateObjects[i].LastUseTime <= expireTime)
                         {
-                            toReleaseObjects.AddLast(current.Value);
-                            LinkedListNode<T> next = current.Next;
-                            candidateObjects.Remove(current);
-                            current = next;
+                            m_CachedToReleaseObjects.Add(candidateObjects[i]);
+                            candidateObjects.RemoveAt(i);
                             continue;
                         }
-
-                        current = current.Next;
                     }
 
-                    toReleaseCount -= toReleaseObjects.Count;
+                    toReleaseCount -= m_CachedToReleaseObjects.Count;
                 }
 
-                for (LinkedListNode<T> i = candidateObjects.First; toReleaseCount > 0 && i != null; i = i.Next)
+                for (int i = 0; toReleaseCount > 0 && i < candidateObjects.Count; i++)
                 {
-                    for (LinkedListNode<T> j = i.Next; j != null; j = j.Next)
+                    for (int j = i + 1; j < candidateObjects.Count; j++)
                     {
-                        if (i.Value.Priority > j.Value.Priority || i.Value.Priority == j.Value.Priority && i.Value.LastUseTime > j.Value.LastUseTime)
+                        if (candidateObjects[i].Priority > candidateObjects[j].Priority
+                            || candidateObjects[i].Priority == candidateObjects[j].Priority && candidateObjects[i].LastUseTime > candidateObjects[j].LastUseTime)
                         {
-                            T temp = i.Value;
-                            i.Value = j.Value;
-                            j.Value = temp;
+                            T temp = candidateObjects[i];
+                            candidateObjects[i] = candidateObjects[j];
+                            candidateObjects[j] = temp;
                         }
                     }
 
-                    toReleaseObjects.AddLast(i.Value);
+                    m_CachedToReleaseObjects.Add(candidateObjects[i]);
                     toReleaseCount--;
                 }
 
-                return toReleaseObjects;
+                return m_CachedToReleaseObjects;
             }
         }
     }

@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
@@ -22,7 +22,6 @@ namespace GameFramework.DataTable
         public DataTableBase()
             : this(null)
         {
-
         }
 
         /// <summary>
@@ -46,6 +45,17 @@ namespace GameFramework.DataTable
         }
 
         /// <summary>
+        /// 获取数据表完整名称。
+        /// </summary>
+        public string FullName
+        {
+            get
+            {
+                return new TypeNamePair(Type, m_Name).ToString();
+            }
+        }
+
+        /// <summary>
         /// 获取数据表行的类型。
         /// </summary>
         public abstract Type Type
@@ -64,8 +74,10 @@ namespace GameFramework.DataTable
         /// <summary>
         /// 增加数据表行。
         /// </summary>
-        /// <param name="dataRowText">要解析的数据表行文本。</param>
-        internal abstract void AddDataRow(string dataRowText);
+        /// <param name="dataRowSegment">要解析的数据表行片段。</param>
+        /// <param name="dataTableUserData">数据表用户自定义数据。</param>
+        /// <returns>是否增加数据表行成功。</returns>
+        public abstract bool AddDataRow(GameFrameworkDataSegment dataRowSegment, object dataTableUserData);
 
         /// <summary>
         /// 关闭并清理数据表。

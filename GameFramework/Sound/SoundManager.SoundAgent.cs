@@ -1,15 +1,15 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
 
 namespace GameFramework.Sound
 {
-    internal partial class SoundManager
+    internal sealed partial class SoundManager : GameFrameworkModule, ISoundManager
     {
         /// <summary>
         /// 声音代理。
@@ -91,6 +91,17 @@ namespace GameFramework.Sound
                 get
                 {
                     return m_SoundAgentHelper.IsPlaying;
+                }
+            }
+
+            /// <summary>
+            /// 获取声音长度。
+            /// </summary>
+            public float Length
+            {
+                get
+                {
+                    return m_SoundAgentHelper.Length;
                 }
             }
 
@@ -254,6 +265,21 @@ namespace GameFramework.Sound
             }
 
             /// <summary>
+            /// 获取或设置声音多普勒等级。
+            /// </summary>
+            public float DopplerLevel
+            {
+                get
+                {
+                    return m_SoundAgentHelper.DopplerLevel;
+                }
+                set
+                {
+                    m_SoundAgentHelper.DopplerLevel = value;
+                }
+            }
+
+            /// <summary>
             /// 获取声音代理辅助器。
             /// </summary>
             public ISoundAgentHelper Helper
@@ -364,6 +390,7 @@ namespace GameFramework.Sound
                 PanStereo = Constant.DefaultPanStereo;
                 SpatialBlend = Constant.DefaultSpatialBlend;
                 MaxDistance = Constant.DefaultMaxDistance;
+                DopplerLevel = Constant.DefaultDopplerLevel;
                 m_SoundAgentHelper.Reset();
             }
 

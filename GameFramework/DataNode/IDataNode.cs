@@ -1,9 +1,11 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
+
+using System.Collections.Generic;
 
 namespace GameFramework.DataNode
 {
@@ -71,6 +73,20 @@ namespace GameFramework.DataNode
         void SetData(Variable data);
 
         /// <summary>
+        /// 根据索引检查是否存在子数据结点。
+        /// </summary>
+        /// <param name="index">子数据结点的索引。</param>
+        /// <returns>是否存在子数据结点。</returns>
+        bool HasChild(int index);
+
+        /// <summary>
+        /// 根据名称检查是否存在子数据结点。
+        /// </summary>
+        /// <param name="name">子数据结点名称。</param>
+        /// <returns>是否存在子数据结点。</returns>
+        bool HasChild(string name);
+
+        /// <summary>
         /// 根据索引获取子数据结点。
         /// </summary>
         /// <param name="index">子数据结点的索引。</param>
@@ -96,6 +112,12 @@ namespace GameFramework.DataNode
         /// </summary>
         /// <returns>所有子数据结点。</returns>
         IDataNode[] GetAllChild();
+
+        /// <summary>
+        /// 获取所有子数据结点。
+        /// </summary>
+        /// <param name="results">所有子数据结点。</param>
+        void GetAllChild(List<IDataNode> results);
 
         /// <summary>
         /// 根据索引移除子数据结点。

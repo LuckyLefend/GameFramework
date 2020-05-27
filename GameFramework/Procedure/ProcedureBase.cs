@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework.Fsm;
@@ -31,7 +31,6 @@ namespace GameFramework.Procedure
         protected internal override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
-            Log.Debug("Enter '{0}' procedure.", GetType().FullName);
         }
 
         /// <summary>
@@ -53,7 +52,6 @@ namespace GameFramework.Procedure
         protected internal override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)
         {
             base.OnLeave(procedureOwner, isShutdown);
-            Log.Debug("Leave '{0}' procedure.", GetType().FullName);
         }
 
         /// <summary>

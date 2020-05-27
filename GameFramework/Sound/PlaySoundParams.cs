@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 namespace GameFramework.Sound
@@ -10,8 +10,9 @@ namespace GameFramework.Sound
     /// <summary>
     /// 播放声音参数。
     /// </summary>
-    public sealed class PlaySoundParams
+    public sealed class PlaySoundParams : IReference
     {
+        private bool m_Referenced;
         private float m_Time;
         private bool m_MuteInSoundGroup;
         private bool m_Loop;
@@ -22,12 +23,14 @@ namespace GameFramework.Sound
         private float m_PanStereo;
         private float m_SpatialBlend;
         private float m_MaxDistance;
+        private float m_DopplerLevel;
 
         /// <summary>
         /// 初始化播放声音参数的新实例。
         /// </summary>
         public PlaySoundParams()
         {
+            m_Referenced = false;
             m_Time = Constant.DefaultTime;
             m_MuteInSoundGroup = Constant.DefaultMute;
             m_Loop = Constant.DefaultLoop;
@@ -38,6 +41,7 @@ namespace GameFramework.Sound
             m_PanStereo = Constant.DefaultPanStereo;
             m_SpatialBlend = Constant.DefaultSpatialBlend;
             m_MaxDistance = Constant.DefaultMaxDistance;
+            m_DopplerLevel = Constant.DefaultDopplerLevel;
         }
 
         /// <summary>
@@ -188,6 +192,58 @@ namespace GameFramework.Sound
             {
                 m_MaxDistance = value;
             }
+        }
+
+        /// <summary>
+        /// 获取或设置声音多普勒等级。
+        /// </summary>
+        public float DopplerLevel
+        {
+            get
+            {
+                return m_DopplerLevel;
+            }
+            set
+            {
+                m_DopplerLevel = value;
+            }
+        }
+
+        internal bool Referenced
+        {
+            get
+            {
+                return m_Referenced;
+            }
+        }
+
+        /// <summary>
+        /// 创建播放声音参数。
+        /// </summary>
+        /// <returns>创建的播放声音参数。</returns>
+        public static PlaySoundParams Create()
+        {
+            PlaySoundParams playSoundParams = ReferencePool.Acquire<PlaySoundParams>();
+            playSoundParams.m_Referenced = true;
+            return playSoundParams;
+        }
+
+        /// <summary>
+        /// 清理播放声音参数。
+        /// </summary>
+        public void Clear()
+        {
+            m_Time = Constant.DefaultTime;
+            m_MuteInSoundGroup = Constant.DefaultMute;
+            m_Loop = Constant.DefaultLoop;
+            m_Priority = Constant.DefaultPriority;
+            m_VolumeInSoundGroup = Constant.DefaultVolume;
+            m_FadeInSeconds = Constant.DefaultFadeInSeconds;
+            m_Pitch = Constant.DefaultPitch;
+            m_PanStereo = Constant.DefaultPanStereo;
+            m_SpatialBlend = Constant.DefaultSpatialBlend;
+            m_MaxDistance = Constant.DefaultMaxDistance;
+            m_DopplerLevel = Constant.DefaultDopplerLevel;
         }
     }
 }

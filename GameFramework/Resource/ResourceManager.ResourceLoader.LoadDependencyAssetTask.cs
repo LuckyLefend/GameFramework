@@ -1,25 +1,23 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 namespace GameFramework.Resource
 {
-    internal partial class ResourceManager
+    internal sealed partial class ResourceManager : GameFrameworkModule, IResourceManager
     {
-        private partial class ResourceLoader
+        private sealed partial class ResourceLoader
         {
             private sealed class LoadDependencyAssetTask : LoadResourceTaskBase
             {
-                private readonly LoadResourceTaskBase m_MainTask;
+                private LoadResourceTaskBase m_MainTask;
 
-                public LoadDependencyAssetTask(string assetName, ResourceInfo resourceInfo, string[] dependencyAssetNames, string[] scatteredDependencyAssetNames, string resourceChildName, LoadResourceTaskBase mainTask, object userData)
-                    : base(assetName, resourceInfo, dependencyAssetNames, scatteredDependencyAssetNames, resourceChildName, userData)
+                public LoadDependencyAssetTask()
                 {
-                    m_MainTask = mainTask;
-                    m_MainTask.TotalDependencyAssetCount++;
+                    m_MainTask = null;
                 }
 
                 public override bool IsScene
@@ -28,6 +26,21 @@ namespace GameFramework.Resource
                     {
                         return false;
                     }
+                }
+
+                public static LoadDependencyAssetTask Create(string assetName, int priority, ResourceInfo resourceInfo, string[] dependencyAssetNames, LoadResourceTaskBase mainTask, object userData)
+                {
+                    LoadDependencyAssetTask loadDependencyAssetTask = ReferencePool.Acquire<LoadDependencyAssetTask>();
+                    loadDependencyAssetTask.Initialize(assetName, null, priority, resourceInfo, dependencyAssetNames, userData);
+                    loadDependencyAssetTask.m_MainTask = mainTask;
+                    loadDependencyAssetTask.m_MainTask.TotalDependencyAssetCount++;
+                    return loadDependencyAssetTask;
+                }
+
+                public override void Clear()
+                {
+                    base.Clear();
+                    m_MainTask = null;
                 }
 
                 public override void OnLoadAssetSuccess(LoadResourceAgent agent, object asset, float duration)
@@ -39,7 +52,7 @@ namespace GameFramework.Resource
                 public override void OnLoadAssetFailure(LoadResourceAgent agent, LoadResourceStatus status, string errorMessage)
                 {
                     base.OnLoadAssetFailure(agent, status, errorMessage);
-                    m_MainTask.OnLoadAssetFailure(agent, LoadResourceStatus.DependencyError, string.Format("Can not load dependency asset '{0}', internal status '{1}', internal error message '{2}'.", AssetName, status.ToString(), errorMessage));
+                    m_MainTask.OnLoadAssetFailure(agent, LoadResourceStatus.DependencyError, Utility.Text.Format("Can not load dependency asset '{0}', internal status '{1}', internal error message '{2}'.", AssetName, status.ToString(), errorMessage));
                 }
             }
         }

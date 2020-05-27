@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace GameFramework.DataTable
 {
-    internal partial class DataTableManager
+    internal sealed partial class DataTableManager : GameFrameworkModule, IDataTableManager
     {
         /// <summary>
         /// 数据表。
@@ -156,14 +156,178 @@ namespace GameFramework.DataTable
 
                 foreach (KeyValuePair<int, T> dataRow in m_DataSet)
                 {
-                    T dr = dataRow.Value;
-                    if (condition(dr))
+                    if (condition(dataRow.Value))
                     {
-                        return dr;
+                        return dataRow.Value;
                     }
                 }
 
                 return null;
+            }
+
+            /// <summary>
+            /// 获取符合条件的数据表行。
+            /// </summary>
+            /// <param name="condition">要检查的条件。</param>
+            /// <returns>符合条件的数据表行。</returns>
+            public T[] GetDataRows(Predicate<T> condition)
+            {
+                if (condition == null)
+                {
+                    throw new GameFrameworkException("Condition is invalid.");
+                }
+
+                List<T> results = new List<T>();
+                foreach (KeyValuePair<int, T> dataRow in m_DataSet)
+                {
+                    if (condition(dataRow.Value))
+                    {
+                        results.Add(dataRow.Value);
+                    }
+                }
+
+                return results.ToArray();
+            }
+
+            /// <summary>
+            /// 获取符合条件的数据表行。
+            /// </summary>
+            /// <param name="condition">要检查的条件。</param>
+            /// <param name="results">符合条件的数据表行。</param>
+            public void GetDataRows(Predicate<T> condition, List<T> results)
+            {
+                if (condition == null)
+                {
+                    throw new GameFrameworkException("Condition is invalid.");
+                }
+
+                if (results == null)
+                {
+                    throw new GameFrameworkException("Results is invalid.");
+                }
+
+                results.Clear();
+                foreach (KeyValuePair<int, T> dataRow in m_DataSet)
+                {
+                    if (condition(dataRow.Value))
+                    {
+                        results.Add(dataRow.Value);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// 获取排序后的数据表行。
+            /// </summary>
+            /// <param name="comparison">要排序的条件。</param>
+            /// <returns>排序后的数据表行。</returns>
+            public T[] GetDataRows(Comparison<T> comparison)
+            {
+                if (comparison == null)
+                {
+                    throw new GameFrameworkException("Comparison is invalid.");
+                }
+
+                List<T> results = new List<T>();
+                foreach (KeyValuePair<int, T> dataRow in m_DataSet)
+                {
+                    results.Add(dataRow.Value);
+                }
+
+                results.Sort(comparison);
+                return results.ToArray();
+            }
+
+            /// <summary>
+            /// 获取排序后的数据表行。
+            /// </summary>
+            /// <param name="comparison">要排序的条件。</param>
+            /// <param name="results">排序后的数据表行。</param>
+            public void GetDataRows(Comparison<T> comparison, List<T> results)
+            {
+                if (comparison == null)
+                {
+                    throw new GameFrameworkException("Comparison is invalid.");
+                }
+
+                if (results == null)
+                {
+                    throw new GameFrameworkException("Results is invalid.");
+                }
+
+                results.Clear();
+                foreach (KeyValuePair<int, T> dataRow in m_DataSet)
+                {
+                    results.Add(dataRow.Value);
+                }
+
+                results.Sort(comparison);
+            }
+
+            /// <summary>
+            /// 获取排序后的符合条件的数据表行。
+            /// </summary>
+            /// <param name="condition">要检查的条件。</param>
+            /// <param name="comparison">要排序的条件。</param>
+            /// <returns>排序后的符合条件的数据表行。</returns>
+            public T[] GetDataRows(Predicate<T> condition, Comparison<T> comparison)
+            {
+                if (condition == null)
+                {
+                    throw new GameFrameworkException("Condition is invalid.");
+                }
+
+                if (comparison == null)
+                {
+                    throw new GameFrameworkException("Comparison is invalid.");
+                }
+
+                List<T> results = new List<T>();
+                foreach (KeyValuePair<int, T> dataRow in m_DataSet)
+                {
+                    if (condition(dataRow.Value))
+                    {
+                        results.Add(dataRow.Value);
+                    }
+                }
+
+                results.Sort(comparison);
+                return results.ToArray();
+            }
+
+            /// <summary>
+            /// 获取排序后的符合条件的数据表行。
+            /// </summary>
+            /// <param name="condition">要检查的条件。</param>
+            /// <param name="comparison">要排序的条件。</param>
+            /// <param name="results">排序后的符合条件的数据表行。</param>
+            public void GetDataRows(Predicate<T> condition, Comparison<T> comparison, List<T> results)
+            {
+                if (condition == null)
+                {
+                    throw new GameFrameworkException("Condition is invalid.");
+                }
+
+                if (comparison == null)
+                {
+                    throw new GameFrameworkException("Comparison is invalid.");
+                }
+
+                if (results == null)
+                {
+                    throw new GameFrameworkException("Results is invalid.");
+                }
+
+                results.Clear();
+                foreach (KeyValuePair<int, T> dataRow in m_DataSet)
+                {
+                    if (condition(dataRow.Value))
+                    {
+                        results.Add(dataRow.Value);
+                    }
+                }
+
+                results.Sort(comparison);
             }
 
             /// <summary>
@@ -173,92 +337,109 @@ namespace GameFramework.DataTable
             public T[] GetAllDataRows()
             {
                 int index = 0;
-                T[] allDataRows = new T[m_DataSet.Count];
+                T[] results = new T[m_DataSet.Count];
                 foreach (KeyValuePair<int, T> dataRow in m_DataSet)
                 {
-                    allDataRows[index++] = dataRow.Value;
+                    results[index++] = dataRow.Value;
                 }
 
-                return allDataRows;
+                return results;
             }
 
             /// <summary>
-            /// 获取所有符合条件的数据表行。
+            /// 获取所有数据表行。
             /// </summary>
-            /// <param name="condition">要检查的条件。</param>
-            /// <returns>所有符合条件的数据表行。</returns>
-            public T[] GetAllDataRows(Predicate<T> condition)
+            /// <param name="results">所有数据表行。</param>
+            public void GetAllDataRows(List<T> results)
             {
-                if (condition == null)
+                if (results == null)
                 {
-                    throw new GameFrameworkException("Condition is invalid.");
+                    throw new GameFrameworkException("Results is invalid.");
                 }
 
-                List<T> results = new List<T>();
+                results.Clear();
                 foreach (KeyValuePair<int, T> dataRow in m_DataSet)
                 {
-                    T dr = dataRow.Value;
-                    if (condition(dr))
+                    results.Add(dataRow.Value);
+                }
+            }
+
+            /// <summary>
+            /// 增加数据表行。
+            /// </summary>
+            /// <param name="dataRowSegment">要解析的数据表行片段。</param>
+            /// <param name="dataTableUserData">数据表用户自定义数据。</param>
+            /// <returns>是否增加数据表行成功。</returns>
+            public override bool AddDataRow(GameFrameworkDataSegment dataRowSegment, object dataTableUserData)
+            {
+                try
+                {
+                    T dataRow = new T();
+                    if (!dataRow.ParseDataRow(dataRowSegment, dataTableUserData))
                     {
-                        results.Add(dr);
+                        return false;
+                    }
+
+                    InternalAddDataRow(dataRow);
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    if (exception is GameFrameworkException)
+                    {
+                        throw;
+                    }
+
+                    throw new GameFrameworkException(Utility.Text.Format("Can not parse data table '{0}' with exception '{1}'.", new TypeNamePair(typeof(T), Name).ToString(), exception.ToString()), exception);
+                }
+            }
+
+            /// <summary>
+            /// 移除指定数据表行。
+            /// </summary>
+            /// <param name="id">要移除数据表行的编号。</param>
+            /// <returns>是否移除数据表行成功。</returns>
+            public bool RemoveDataRow(int id)
+            {
+                if (!HasDataRow(id))
+                {
+                    return false;
+                }
+
+                if (!m_DataSet.Remove(id))
+                {
+                    return false;
+                }
+
+                if (m_MinIdDataRow != null && m_MinIdDataRow.Id == id || m_MaxIdDataRow != null && m_MaxIdDataRow.Id == id)
+                {
+                    m_MinIdDataRow = null;
+                    m_MaxIdDataRow = null;
+                    foreach (KeyValuePair<int, T> dataRow in m_DataSet)
+                    {
+                        if (m_MinIdDataRow == null || m_MinIdDataRow.Id > dataRow.Key)
+                        {
+                            m_MinIdDataRow = dataRow.Value;
+                        }
+
+                        if (m_MaxIdDataRow == null || m_MaxIdDataRow.Id < dataRow.Key)
+                        {
+                            m_MaxIdDataRow = dataRow.Value;
+                        }
                     }
                 }
 
-                return results.ToArray();
+                return true;
             }
 
             /// <summary>
-            /// 获取所有排序后的数据表行。
+            /// 清空所有数据表行。
             /// </summary>
-            /// <param name="comparison">要排序的条件。</param>
-            /// <returns>所有排序后的数据表行。</returns>
-            public T[] GetAllDataRows(Comparison<T> comparison)
+            public void RemoveAllDataRows()
             {
-                if (comparison == null)
-                {
-                    throw new GameFrameworkException("Comparison is invalid.");
-                }
-
-                List<T> allDataRows = new List<T>();
-                foreach (KeyValuePair<int, T> dataRow in m_DataSet)
-                {
-                    allDataRows.Add(dataRow.Value);
-                }
-
-                allDataRows.Sort(comparison);
-                return allDataRows.ToArray();
-            }
-
-            /// <summary>
-            /// 获取所有排序后的符合条件的数据表行。
-            /// </summary>
-            /// <param name="condition">要检查的条件。</param>
-            /// <param name="comparison">要排序的条件。</param>
-            /// <returns>所有排序后的符合条件的数据表行。</returns>
-            public T[] GetAllDataRows(Predicate<T> condition, Comparison<T> comparison)
-            {
-                if (condition == null)
-                {
-                    throw new GameFrameworkException("Condition is invalid.");
-                }
-
-                if (comparison == null)
-                {
-                    throw new GameFrameworkException("Comparison is invalid.");
-                }
-
-                List<T> results = new List<T>();
-                foreach (KeyValuePair<int, T> dataRow in m_DataSet)
-                {
-                    T dr = dataRow.Value;
-                    if (condition(dr))
-                    {
-                        results.Add(dr);
-                    }
-                }
-
-                results.Sort(comparison);
-                return results.ToArray();
+                m_DataSet.Clear();
+                m_MinIdDataRow = null;
+                m_MaxIdDataRow = null;
             }
 
             /// <summary>
@@ -283,30 +464,11 @@ namespace GameFramework.DataTable
                 m_DataSet.Clear();
             }
 
-            /// <summary>
-            /// 增加数据表行。
-            /// </summary>
-            /// <param name="dataRowText">要解析的数据表行文本。</param>
-            internal override void AddDataRow(string dataRowText)
+            private void InternalAddDataRow(T dataRow)
             {
-                T dataRow = new T();
-                try
-                {
-                    dataRow.ParseDataRow(dataRowText);
-                }
-                catch (Exception exception)
-                {
-                    if (exception is GameFrameworkException)
-                    {
-                        throw;
-                    }
-
-                    throw new GameFrameworkException(string.Format("Can not parse data table '{0}' at '{1}' with exception '{2}'.", Utility.Text.GetFullName<T>(Name), dataRowText, exception.ToString()), exception);
-                }
-
                 if (HasDataRow(dataRow.Id))
                 {
-                    throw new GameFrameworkException(string.Format("Already exist '{0}' in data table '{1}'.", dataRow.Id.ToString(), Utility.Text.GetFullName<T>(Name)));
+                    throw new GameFrameworkException(Utility.Text.Format("Already exist '{0}' in data table '{1}'.", dataRow.Id.ToString(), new TypeNamePair(typeof(T), Name).ToString()));
                 }
 
                 m_DataSet.Add(dataRow.Id, dataRow);

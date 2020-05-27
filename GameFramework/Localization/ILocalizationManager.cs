@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework.Resource;
@@ -82,23 +82,72 @@ namespace GameFramework.Localization
         /// 加载字典。
         /// </summary>
         /// <param name="dictionaryAssetName">字典资源名称。</param>
+        /// <param name="priority">加载字典资源的优先级。</param>
+        void LoadDictionary(string dictionaryAssetName, int priority);
+
+        /// <summary>
+        /// 加载字典。
+        /// </summary>
+        /// <param name="dictionaryAssetName">字典资源名称。</param>
         /// <param name="userData">用户自定义数据。</param>
         void LoadDictionary(string dictionaryAssetName, object userData);
 
         /// <summary>
-        /// 解析字典。
+        /// 加载字典。
         /// </summary>
-        /// <param name="text">要解析的字典文本。</param>
-        /// <returns>是否解析字典成功。</returns>
-        bool ParseDictionary(string text);
+        /// <param name="dictionaryAssetName">字典资源名称。</param>
+        /// <param name="priority">加载字典资源的优先级。</param>
+        /// <param name="userData">用户自定义数据。</param>
+        void LoadDictionary(string dictionaryAssetName, int priority, object userData);
 
         /// <summary>
         /// 解析字典。
         /// </summary>
-        /// <param name="text">要解析的字典文本。</param>
+        /// <param name="dictionaryData">要解析的字典数据。</param>
+        /// <returns>是否解析字典成功。</returns>
+        bool ParseDictionary(object dictionaryData);
+
+        /// <summary>
+        /// 解析字典。
+        /// </summary>
+        /// <param name="dictionaryData">要解析的字典数据。</param>
         /// <param name="userData">用户自定义数据。</param>
         /// <returns>是否解析字典成功。</returns>
-        bool ParseDictionary(string text, object userData);
+        bool ParseDictionary(object dictionaryData, object userData);
+
+        /// <summary>
+        /// 根据字典主键获取字典内容字符串。
+        /// </summary>
+        /// <param name="key">字典主键。</param>
+        /// <returns>要获取的字典内容字符串。</returns>
+        string GetString(string key);
+
+        /// <summary>
+        /// 根据字典主键获取字典内容字符串。
+        /// </summary>
+        /// <param name="key">字典主键。</param>
+        /// <param name="arg0">字典参数 0。</param>
+        /// <returns>要获取的字典内容字符串。</returns>
+        string GetString(string key, object arg0);
+
+        /// <summary>
+        /// 根据字典主键获取字典内容字符串。
+        /// </summary>
+        /// <param name="key">字典主键。</param>
+        /// <param name="arg0">字典参数 0。</param>
+        /// <param name="arg1">字典参数 1。</param>
+        /// <returns>要获取的字典内容字符串。</returns>
+        string GetString(string key, object arg0, object arg1);
+
+        /// <summary>
+        /// 根据字典主键获取字典内容字符串。
+        /// </summary>
+        /// <param name="key">字典主键。</param>
+        /// <param name="arg0">字典参数 0。</param>
+        /// <param name="arg1">字典参数 1。</param>
+        /// <param name="arg2">字典参数 2。</param>
+        /// <returns>要获取的字典内容字符串。</returns>
+        string GetString(string key, object arg0, object arg1, object arg2);
 
         /// <summary>
         /// 根据字典主键获取字典内容字符串。
@@ -136,5 +185,10 @@ namespace GameFramework.Localization
         /// <param name="key">字典主键。</param>
         /// <returns>是否移除字典成功。</returns>
         bool RemoveRawString(string key);
+
+        /// <summary>
+        /// 清空所有字典。
+        /// </summary>
+        void RemoveAllRawStrings();
     }
 }

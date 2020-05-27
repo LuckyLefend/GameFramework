@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
@@ -95,6 +95,14 @@ namespace GameFramework.WebRequest
         /// 增加 Web 请求任务。
         /// </summary>
         /// <param name="webRequestUri">Web 请求地址。</param>
+        /// <param name="priority">Web 请求任务的优先级。</param>
+        /// <returns>新增 Web 请求任务的序列编号。</returns>
+        int AddWebRequest(string webRequestUri, int priority);
+
+        /// <summary>
+        /// 增加 Web 请求任务。
+        /// </summary>
+        /// <param name="webRequestUri">Web 请求地址。</param>
         /// <param name="userData">用户自定义数据。</param>
         /// <returns>新增 Web 请求任务的序列编号。</returns>
         int AddWebRequest(string webRequestUri, object userData);
@@ -104,9 +112,37 @@ namespace GameFramework.WebRequest
         /// </summary>
         /// <param name="webRequestUri">Web 请求地址。</param>
         /// <param name="postData">要发送的数据流。</param>
+        /// <param name="priority">Web 请求任务的优先级。</param>
+        /// <returns>新增 Web 请求任务的序列编号。</returns>
+        int AddWebRequest(string webRequestUri, byte[] postData, int priority);
+
+        /// <summary>
+        /// 增加 Web 请求任务。
+        /// </summary>
+        /// <param name="webRequestUri">Web 请求地址。</param>
+        /// <param name="postData">要发送的数据流。</param>
         /// <param name="userData">用户自定义数据。</param>
         /// <returns>新增 Web 请求任务的序列编号。</returns>
         int AddWebRequest(string webRequestUri, byte[] postData, object userData);
+
+        /// <summary>
+        /// 增加 Web 请求任务。
+        /// </summary>
+        /// <param name="webRequestUri">Web 请求地址。</param>
+        /// <param name="priority">Web 请求任务的优先级。</param>
+        /// <param name="userData">用户自定义数据。</param>
+        /// <returns>新增 Web 请求任务的序列编号。</returns>
+        int AddWebRequest(string webRequestUri, int priority, object userData);
+
+        /// <summary>
+        /// 增加 Web 请求任务。
+        /// </summary>
+        /// <param name="webRequestUri">Web 请求地址。</param>
+        /// <param name="postData">要发送的数据流。</param>
+        /// <param name="priority">Web 请求任务的优先级。</param>
+        /// <param name="userData">用户自定义数据。</param>
+        /// <returns>新增 Web 请求任务的序列编号。</returns>
+        int AddWebRequest(string webRequestUri, byte[] postData, int priority, object userData);
 
         /// <summary>
         /// 移除 Web 请求任务。
@@ -119,5 +155,11 @@ namespace GameFramework.WebRequest
         /// 移除所有 Web 请求任务。
         /// </summary>
         void RemoveAllWebRequests();
+
+        /// <summary>
+        /// 获取所有 Web 请求任务的信息。
+        /// </summary>
+        /// <returns>所有 Web 请求任务的信息。</returns>
+        TaskInfo[] GetAllWebRequestInfos();
     }
 }

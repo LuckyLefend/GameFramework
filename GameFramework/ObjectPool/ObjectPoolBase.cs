@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
@@ -22,7 +22,6 @@ namespace GameFramework.ObjectPool
         public ObjectPoolBase()
             : this(null)
         {
-
         }
 
         /// <summary>
@@ -42,6 +41,17 @@ namespace GameFramework.ObjectPool
             get
             {
                 return m_Name;
+            }
+        }
+
+        /// <summary>
+        /// 获取对象池完整名称。
+        /// </summary>
+        public string FullName
+        {
+            get
+            {
+                return new TypeNamePair(ObjectType, m_Name).ToString();
             }
         }
 

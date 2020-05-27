@@ -1,15 +1,15 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System.Collections.Generic;
 
 namespace GameFramework.UI
 {
-    internal partial class UIManager
+    internal sealed partial class UIManager : GameFrameworkModule, IUIManager
     {
         /// <summary>
         /// 界面组。
@@ -18,8 +18,10 @@ namespace GameFramework.UI
         {
             private readonly string m_Name;
             private int m_Depth;
+            private bool m_Pause;
             private readonly IUIGroupHelper m_UIGroupHelper;
-            private readonly LinkedList<UIFormInfo> m_UIFormInfos;
+            private readonly GameFrameworkLinkedList<UIFormInfo> m_UIFormInfos;
+            private LinkedListNode<UIFormInfo> m_CachedNode;
 
             /// <summary>
             /// 初始化界面组的新实例。
@@ -40,8 +42,10 @@ namespace GameFramework.UI
                 }
 
                 m_Name = name;
+                m_Pause = false;
                 m_UIGroupHelper = uiGroupHelper;
-                m_UIFormInfos = new LinkedList<UIFormInfo>();
+                m_UIFormInfos = new GameFrameworkLinkedList<UIFormInfo>();
+                m_CachedNode = null;
                 Depth = depth;
             }
 
@@ -74,6 +78,27 @@ namespace GameFramework.UI
 
                     m_Depth = value;
                     m_UIGroupHelper.SetDepth(m_Depth);
+                    Refresh();
+                }
+            }
+
+            /// <summary>
+            /// 获取或设置界面组是否暂停。
+            /// </summary>
+            public bool Pause
+            {
+                get
+                {
+                    return m_Pause;
+                }
+                set
+                {
+                    if (m_Pause == value)
+                    {
+                        return;
+                    }
+
+                    m_Pause = value;
                     Refresh();
                 }
             }
@@ -126,9 +151,10 @@ namespace GameFramework.UI
                         break;
                     }
 
-                    LinkedListNode<UIFormInfo> next = current.Next;
+                    m_CachedNode = current.Next;
                     current.Value.UIForm.OnUpdate(elapseSeconds, realElapseSeconds);
-                    current = next;
+                    current = m_CachedNode;
+                    m_CachedNode = null;
                 }
             }
 
@@ -226,16 +252,43 @@ namespace GameFramework.UI
                     throw new GameFrameworkException("UI form asset name is invalid.");
                 }
 
-                List<IUIForm> uiForms = new List<IUIForm>();
+                List<IUIForm> results = new List<IUIForm>();
                 foreach (UIFormInfo uiFormInfo in m_UIFormInfos)
                 {
                     if (uiFormInfo.UIForm.UIFormAssetName == uiFormAssetName)
                     {
-                        uiForms.Add(uiFormInfo.UIForm);
+                        results.Add(uiFormInfo.UIForm);
                     }
                 }
 
-                return uiForms.ToArray();
+                return results.ToArray();
+            }
+
+            /// <summary>
+            /// 从界面组中获取界面。
+            /// </summary>
+            /// <param name="uiFormAssetName">界面资源名称。</param>
+            /// <param name="results">要获取的界面。</param>
+            public void GetUIForms(string uiFormAssetName, List<IUIForm> results)
+            {
+                if (string.IsNullOrEmpty(uiFormAssetName))
+                {
+                    throw new GameFrameworkException("UI form asset name is invalid.");
+                }
+
+                if (results == null)
+                {
+                    throw new GameFrameworkException("Results is invalid.");
+                }
+
+                results.Clear();
+                foreach (UIFormInfo uiFormInfo in m_UIFormInfos)
+                {
+                    if (uiFormInfo.UIForm.UIFormAssetName == uiFormAssetName)
+                    {
+                        results.Add(uiFormInfo.UIForm);
+                    }
+                }
             }
 
             /// <summary>
@@ -244,13 +297,31 @@ namespace GameFramework.UI
             /// <returns>界面组中的所有界面。</returns>
             public IUIForm[] GetAllUIForms()
             {
-                List<IUIForm> uiForms = new List<IUIForm>();
+                List<IUIForm> results = new List<IUIForm>();
                 foreach (UIFormInfo uiFormInfo in m_UIFormInfos)
                 {
-                    uiForms.Add(uiFormInfo.UIForm);
+                    results.Add(uiFormInfo.UIForm);
                 }
 
-                return uiForms.ToArray();
+                return results.ToArray();
+            }
+
+            /// <summary>
+            /// 从界面组中获取所有界面。
+            /// </summary>
+            /// <param name="results">界面组中的所有界面。</param>
+            public void GetAllUIForms(List<IUIForm> results)
+            {
+                if (results == null)
+                {
+                    throw new GameFrameworkException("Results is invalid.");
+                }
+
+                results.Clear();
+                foreach (UIFormInfo uiFormInfo in m_UIFormInfos)
+                {
+                    results.Add(uiFormInfo.UIForm);
+                }
             }
 
             /// <summary>
@@ -259,8 +330,7 @@ namespace GameFramework.UI
             /// <param name="uiForm">要增加的界面。</param>
             public void AddUIForm(IUIForm uiForm)
             {
-                UIFormInfo uiFormInfo = new UIFormInfo(uiForm);
-                m_UIFormInfos.AddFirst(uiFormInfo);
+                m_UIFormInfos.AddFirst(UIFormInfo.Create(uiForm));
             }
 
             /// <summary>
@@ -272,7 +342,7 @@ namespace GameFramework.UI
                 UIFormInfo uiFormInfo = GetUIFormInfo(uiForm);
                 if (uiFormInfo == null)
                 {
-                    throw new GameFrameworkException(string.Format("Can not find UI form info for serial id '{0}', UI form asset name is '{1}'.", uiForm.SerialId.ToString(), uiForm.UIFormAssetName));
+                    throw new GameFrameworkException(Utility.Text.Format("Can not find UI form info for serial id '{0}', UI form asset name is '{1}'.", uiForm.SerialId.ToString(), uiForm.UIFormAssetName));
                 }
 
                 if (!uiFormInfo.Covered)
@@ -287,7 +357,17 @@ namespace GameFramework.UI
                     uiForm.OnPause();
                 }
 
-                m_UIFormInfos.Remove(uiFormInfo);
+                if (m_CachedNode != null && m_CachedNode.Value.UIForm == uiForm)
+                {
+                    m_CachedNode = m_CachedNode.Next;
+                }
+
+                if (!m_UIFormInfos.Remove(uiFormInfo))
+                {
+                    throw new GameFrameworkException(Utility.Text.Format("UI group '{0}' not exists specified UI form '[{1}]{2}'.", m_Name, uiForm.SerialId.ToString(), uiForm.UIFormAssetName));
+                }
+
+                ReferencePool.Release(uiFormInfo);
             }
 
             /// <summary>
@@ -313,25 +393,38 @@ namespace GameFramework.UI
             public void Refresh()
             {
                 LinkedListNode<UIFormInfo> current = m_UIFormInfos.First;
-                bool pause = false;
+                bool pause = m_Pause;
                 bool cover = false;
                 int depth = UIFormCount;
-                while (current != null)
+                while (current != null && current.Value != null)
                 {
                     LinkedListNode<UIFormInfo> next = current.Next;
                     current.Value.UIForm.OnDepthChanged(Depth, depth--);
+                    if (current.Value == null)
+                    {
+                        return;
+                    }
+
                     if (pause)
                     {
                         if (!current.Value.Covered)
                         {
                             current.Value.Covered = true;
                             current.Value.UIForm.OnCover();
+                            if (current.Value == null)
+                            {
+                                return;
+                            }
                         }
 
                         if (!current.Value.Paused)
                         {
                             current.Value.Paused = true;
                             current.Value.UIForm.OnPause();
+                            if (current.Value == null)
+                            {
+                                return;
+                            }
                         }
                     }
                     else
@@ -340,6 +433,10 @@ namespace GameFramework.UI
                         {
                             current.Value.Paused = false;
                             current.Value.UIForm.OnResume();
+                            if (current.Value == null)
+                            {
+                                return;
+                            }
                         }
 
                         if (current.Value.UIForm.PauseCoveredUIForm)
@@ -353,6 +450,10 @@ namespace GameFramework.UI
                             {
                                 current.Value.Covered = true;
                                 current.Value.UIForm.OnCover();
+                                if (current.Value == null)
+                                {
+                                    return;
+                                }
                             }
                         }
                         else
@@ -361,6 +462,10 @@ namespace GameFramework.UI
                             {
                                 current.Value.Covered = false;
                                 current.Value.UIForm.OnReveal();
+                                if (current.Value == null)
+                                {
+                                    return;
+                                }
                             }
 
                             cover = true;
@@ -368,6 +473,25 @@ namespace GameFramework.UI
                     }
 
                     current = next;
+                }
+            }
+
+            internal void InternalGetUIForms(string uiFormAssetName, List<IUIForm> results)
+            {
+                foreach (UIFormInfo uiFormInfo in m_UIFormInfos)
+                {
+                    if (uiFormInfo.UIForm.UIFormAssetName == uiFormAssetName)
+                    {
+                        results.Add(uiFormInfo.UIForm);
+                    }
+                }
+            }
+
+            internal void InternalGetAllUIForms(List<IUIForm> results)
+            {
+                foreach (UIFormInfo uiFormInfo in m_UIFormInfos)
+                {
+                    results.Add(uiFormInfo.UIForm);
                 }
             }
 

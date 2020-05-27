@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
@@ -15,15 +15,30 @@ namespace GameFramework.Event
     public interface IEventManager
     {
         /// <summary>
-        /// 获取事件数量。
+        /// 获取事件处理函数的数量。
         /// </summary>
-        int Count
+        int EventHandlerCount
         {
             get;
         }
 
         /// <summary>
-        /// 检查订阅事件处理函数。
+        /// 获取事件数量。
+        /// </summary>
+        int EventCount
+        {
+            get;
+        }
+
+        /// <summary>
+        /// 获取事件处理函数的数量。
+        /// </summary>
+        /// <param name="id">事件类型编号。</param>
+        /// <returns>事件处理函数的数量。</returns>
+        int Count(int id);
+
+        /// <summary>
+        /// 检查是否存在事件处理函数。
         /// </summary>
         /// <param name="id">事件类型编号。</param>
         /// <param name="handler">要检查的事件处理函数。</param>
@@ -43,6 +58,12 @@ namespace GameFramework.Event
         /// <param name="id">事件类型编号。</param>
         /// <param name="handler">要取消订阅的事件处理函数。</param>
         void Unsubscribe(int id, EventHandler<GameEventArgs> handler);
+
+        /// <summary>
+        /// 设置默认事件处理函数。
+        /// </summary>
+        /// <param name="handler">要设置的默认事件处理函数。</param>
+        void SetDefaultHandler(EventHandler<GameEventArgs> handler);
 
         /// <summary>
         /// 抛出事件，这个操作是线程安全的，即使不在主线程中抛出，也可保证在主线程中回调事件处理函数，但事件会在抛出后的下一帧分发。

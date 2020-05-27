@@ -1,26 +1,31 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework.ObjectPool;
 
 namespace GameFramework.UI
 {
-    internal partial class UIManager
+    internal sealed partial class UIManager : GameFrameworkModule, IUIManager
     {
         /// <summary>
         /// 界面实例对象。
         /// </summary>
         private sealed class UIFormInstanceObject : ObjectBase
         {
-            private readonly object m_UIFormAsset;
-            private readonly IUIFormHelper m_UIFormHelper;
+            private object m_UIFormAsset;
+            private IUIFormHelper m_UIFormHelper;
 
-            public UIFormInstanceObject(string name, object uiFormAsset, object uiFormInstance, IUIFormHelper uiFormHelper)
-                : base(name, uiFormInstance)
+            public UIFormInstanceObject()
+            {
+                m_UIFormAsset = null;
+                m_UIFormHelper = null;
+            }
+
+            public static UIFormInstanceObject Create(string name, object uiFormAsset, object uiFormInstance, IUIFormHelper uiFormHelper)
             {
                 if (uiFormAsset == null)
                 {
@@ -32,11 +37,21 @@ namespace GameFramework.UI
                     throw new GameFrameworkException("UI form helper is invalid.");
                 }
 
-                m_UIFormAsset = uiFormAsset;
-                m_UIFormHelper = uiFormHelper;
+                UIFormInstanceObject uiFormInstanceObject = ReferencePool.Acquire<UIFormInstanceObject>();
+                uiFormInstanceObject.Initialize(name, uiFormInstance);
+                uiFormInstanceObject.m_UIFormAsset = uiFormAsset;
+                uiFormInstanceObject.m_UIFormHelper = uiFormHelper;
+                return uiFormInstanceObject;
             }
 
-            protected internal override void Release()
+            public override void Clear()
+            {
+                base.Clear();
+                m_UIFormAsset = null;
+                m_UIFormHelper = null;
+            }
+
+            protected internal override void Release(bool isShutdown)
             {
                 m_UIFormHelper.ReleaseUIForm(m_UIFormAsset, Target);
             }

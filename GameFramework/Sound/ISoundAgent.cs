@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 namespace GameFramework.Sound
@@ -32,6 +32,14 @@ namespace GameFramework.Sound
         /// 获取当前是否正在播放。
         /// </summary>
         bool IsPlaying
+        {
+            get;
+        }
+
+        /// <summary>
+        /// 获取声音长度。
+        /// </summary>
+        float Length
         {
             get;
         }
@@ -128,6 +136,15 @@ namespace GameFramework.Sound
         /// 获取或设置声音最大距离。
         /// </summary>
         float MaxDistance
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// 获取或设置声音多普勒等级。
+        /// </summary>
+        float DopplerLevel
         {
             get;
             set;
