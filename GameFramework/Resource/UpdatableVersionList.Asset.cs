@@ -1,9 +1,11 @@
 ﻿//------------------------------------------------------------
 // Game Framework
-// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
+
+using System.Runtime.InteropServices;
 
 namespace GameFramework.Resource
 {
@@ -12,6 +14,7 @@ namespace GameFramework.Resource
         /// <summary>
         /// 资源。
         /// </summary>
+        [StructLayout(LayoutKind.Auto)]
         public struct Asset
         {
             private static readonly int[] EmptyIntArray = new int[] { };
@@ -49,7 +52,7 @@ namespace GameFramework.Resource
             /// <summary>
             /// 获取资源包含的依赖资源索引集合。
             /// </summary>
-            /// <returns></returns>
+            /// <returns>资源包含的依赖资源索引集合。</returns>
             public int[] GetDependencyAssetIndexes()
             {
                 return m_DependencyAssetIndexes;

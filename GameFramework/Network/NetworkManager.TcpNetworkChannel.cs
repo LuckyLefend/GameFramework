@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // Game Framework
-// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
@@ -266,13 +266,13 @@ namespace GameFramework.Network
                     return;
                 }
 
-                m_ReceivedPacketCount++;
                 m_ReceiveState.Stream.Position = 0L;
 
                 bool processSuccess = false;
                 if (m_ReceiveState.PacketHeader != null)
                 {
                     processSuccess = ProcessPacket();
+                    m_ReceivedPacketCount++;
                 }
                 else
                 {

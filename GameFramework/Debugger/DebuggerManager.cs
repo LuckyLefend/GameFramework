@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // Game Framework
-// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
@@ -106,6 +106,16 @@ namespace GameFramework.Debugger
 
             m_DebuggerWindowRoot.RegisterDebuggerWindow(path, debuggerWindow);
             debuggerWindow.Initialize(args);
+        }
+
+        /// <summary>
+        /// 解除注册调试器窗口。
+        /// </summary>
+        /// <param name="path">调试器窗口路径。</param>
+        /// <returns>是否解除注册调试器窗口成功。</returns>
+        public bool UnregisterDebuggerWindow(string path)
+        {
+            return m_DebuggerWindowRoot.UnregisterDebuggerWindow(path);
         }
 
         /// <summary>

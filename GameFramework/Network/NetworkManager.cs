@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // Game Framework
-// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
@@ -29,8 +29,7 @@ namespace GameFramework.Network
         /// </summary>
         public NetworkManager()
         {
-            m_NetworkChannels = new Dictionary<string, NetworkChannelBase>();
-
+            m_NetworkChannels = new Dictionary<string, NetworkChannelBase>(StringComparer.Ordinal);
             m_NetworkConnectedEventHandler = null;
             m_NetworkClosedEventHandler = null;
             m_NetworkMissHeartBeatEventHandler = null;
@@ -252,7 +251,7 @@ namespace GameFramework.Network
                     break;
 
                 default:
-                    throw new GameFrameworkException(Utility.Text.Format("Not supported service type '{0}'.", serviceType.ToString()));
+                    throw new GameFrameworkException(Utility.Text.Format("Not supported service type '{0}'.", serviceType));
             }
 
             networkChannel.NetworkChannelConnected += OnNetworkChannelConnected;

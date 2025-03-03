@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // Game Framework
-// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
@@ -20,7 +20,7 @@ namespace GameFramework.Resource
             private readonly Dictionary<ResourceName, ResourceInfo> m_ResourceInfos;
             private readonly HashSet<ResourceName> m_ResourceNames;
             private long m_TotalLength;
-            private long m_TotalZipLength;
+            private long m_TotalCompressedLength;
 
             /// <summary>
             /// 初始化资源组的新实例。
@@ -112,11 +112,11 @@ namespace GameFramework.Resource
             /// <summary>
             /// 获取资源组包含资源压缩后的总大小。
             /// </summary>
-            public long TotalZipLength
+            public long TotalCompressedLength
             {
                 get
                 {
-                    return m_TotalZipLength;
+                    return m_TotalCompressedLength;
                 }
             }
 
@@ -127,17 +127,38 @@ namespace GameFramework.Resource
             {
                 get
                 {
-                    long totalReadyLength = 0L;
+                    long readyLength = 0L;
                     foreach (ResourceName resourceName in m_ResourceNames)
                     {
                         ResourceInfo resourceInfo = null;
                         if (m_ResourceInfos.TryGetValue(resourceName, out resourceInfo) && resourceInfo.Ready)
                         {
-                            totalReadyLength += resourceInfo.Length;
+                            readyLength += resourceInfo.Length;
                         }
                     }
 
-                    return totalReadyLength;
+                    return readyLength;
+                }
+            }
+
+            /// <summary>
+            /// 获取资源组中已准备完成资源压缩后的总大小。
+            /// </summary>
+            public long ReadyCompressedLength
+            {
+                get
+                {
+                    long readyCompressedLength = 0L;
+                    foreach (ResourceName resourceName in m_ResourceNames)
+                    {
+                        ResourceInfo resourceInfo = null;
+                        if (m_ResourceInfos.TryGetValue(resourceName, out resourceInfo) && resourceInfo.Ready)
+                        {
+                            readyCompressedLength += resourceInfo.CompressedLength;
+                        }
+                    }
+
+                    return readyCompressedLength;
                 }
             }
 
@@ -158,8 +179,8 @@ namespace GameFramework.Resource
             /// <returns>资源组包含的资源名称列表。</returns>
             public string[] GetResourceNames()
             {
-                string[] resourceNames = new string[m_ResourceNames.Count];
                 int index = 0;
+                string[] resourceNames = new string[m_ResourceNames.Count];
                 foreach (ResourceName resourceName in m_ResourceNames)
                 {
                     resourceNames[index++] = resourceName.FullName;
@@ -187,6 +208,40 @@ namespace GameFramework.Resource
             }
 
             /// <summary>
+            /// 获取资源组包含的资源名称列表。
+            /// </summary>
+            /// <returns>资源组包含的资源名称列表。</returns>
+            public ResourceName[] InternalGetResourceNames()
+            {
+                int index = 0;
+                ResourceName[] resourceNames = new ResourceName[m_ResourceNames.Count];
+                foreach (ResourceName resourceName in m_ResourceNames)
+                {
+                    resourceNames[index++] = resourceName;
+                }
+
+                return resourceNames;
+            }
+
+            /// <summary>
+            /// 获取资源组包含的资源名称列表。
+            /// </summary>
+            /// <param name="results">资源组包含的资源名称列表。</param>
+            public void InternalGetResourceNames(List<ResourceName> results)
+            {
+                if (results == null)
+                {
+                    throw new GameFrameworkException("Results is invalid.");
+                }
+
+                results.Clear();
+                foreach (ResourceName resourceName in m_ResourceNames)
+                {
+                    results.Add(resourceName);
+                }
+            }
+
+            /// <summary>
             /// 检查指定资源是否属于资源组。
             /// </summary>
             /// <param name="resourceName">要检查的资源的名称。</param>
@@ -201,12 +256,12 @@ namespace GameFramework.Resource
             /// </summary>
             /// <param name="resourceName">资源名称。</param>
             /// <param name="length">资源大小。</param>
-            /// <param name="zipLength">资源压缩后的大小。</param>
-            public void AddResource(ResourceName resourceName, int length, int zipLength)
+            /// <param name="compressedLength">资源压缩后的大小。</param>
+            public void AddResource(ResourceName resourceName, int length, int compressedLength)
             {
                 m_ResourceNames.Add(resourceName);
                 m_TotalLength += length;
-                m_TotalZipLength += zipLength;
+                m_TotalCompressedLength += compressedLength;
             }
         }
     }

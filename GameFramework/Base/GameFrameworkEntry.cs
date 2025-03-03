@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // Game Framework
-// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
@@ -42,6 +42,7 @@ namespace GameFramework
 
             s_GameFrameworkModules.Clear();
             ReferencePool.ClearAll();
+            Utility.Marshal.FreeCachedHGlobal();
             GameFrameworkLog.SetLogHelper(null);
         }
 
@@ -59,7 +60,7 @@ namespace GameFramework
                 throw new GameFrameworkException(Utility.Text.Format("You must get module by interface, but '{0}' is not.", interfaceType.FullName));
             }
 
-            if (!interfaceType.FullName.StartsWith("GameFramework."))
+            if (!interfaceType.FullName.StartsWith("GameFramework.", StringComparison.Ordinal))
             {
                 throw new GameFrameworkException(Utility.Text.Format("You must get a Game Framework module, but '{0}' is not.", interfaceType.FullName));
             }

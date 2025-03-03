@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // Game Framework
-// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
@@ -348,7 +348,7 @@ namespace GameFramework.Network
                         break;
 
                     default:
-                        string errorMessage = Utility.Text.Format("Not supported address family '{0}'.", ipAddress.AddressFamily.ToString());
+                        string errorMessage = Utility.Text.Format("Not supported address family '{0}'.", ipAddress.AddressFamily);
                         if (NetworkChannelError != null)
                         {
                             NetworkChannelError(this, NetworkErrorCode.AddressFamilyError, SocketError.Success, errorMessage);
@@ -571,7 +571,9 @@ namespace GameFramework.Network
                     m_ReceiveState.PrepareForPacket(packetHeader);
                     if (packetHeader.PacketLength <= 0)
                     {
-                        return ProcessPacket();
+                        bool processSuccess = ProcessPacket();
+                        m_ReceivedPacketCount++;
+                        return processSuccess;
                     }
                 }
                 catch (Exception exception)

@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------
 // Game Framework
-// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
@@ -23,13 +23,23 @@ namespace GameFramework.Resource
         NotReady,
 
         /// <summary>
-        /// 存在资源。
+        /// 存在资源且存储在磁盘上。
         /// </summary>
-        Asset,
+        AssetOnDisk,
 
         /// <summary>
-        /// 存在二进制资源。
+        /// 存在资源且存储在文件系统里。
         /// </summary>
-        Binary
+        AssetOnFileSystem,
+
+        /// <summary>
+        /// 存在二进制资源且存储在磁盘上。
+        /// </summary>
+        BinaryOnDisk,
+
+        /// <summary>
+        /// 存在二进制资源且存储在文件系统里。
+        /// </summary>
+        BinaryOnFileSystem
     }
 }

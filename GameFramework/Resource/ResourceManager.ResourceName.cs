@@ -1,11 +1,13 @@
 ﻿//------------------------------------------------------------
 // Game Framework
-// Copyright © 2013-2020 Jiang Yin. All rights reserved.
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
 // Homepage: https://gameframework.cn/
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace GameFramework.Resource
 {
@@ -14,12 +16,14 @@ namespace GameFramework.Resource
         /// <summary>
         /// 资源名称。
         /// </summary>
+        [StructLayout(LayoutKind.Auto)]
         private struct ResourceName : IComparable, IComparable<ResourceName>, IEquatable<ResourceName>
         {
+            private static readonly Dictionary<ResourceName, string> s_ResourceFullNames = new Dictionary<ResourceName, string>();
+
             private readonly string m_Name;
             private readonly string m_Variant;
             private readonly string m_Extension;
-            private string m_CachedFullName;
 
             /// <summary>
             /// 初始化资源名称的新实例。
@@ -42,7 +46,6 @@ namespace GameFramework.Resource
                 m_Name = name;
                 m_Variant = variant;
                 m_Extension = extension;
-                m_CachedFullName = null;
             }
 
             /// <summary>
@@ -82,12 +85,15 @@ namespace GameFramework.Resource
             {
                 get
                 {
-                    if (m_CachedFullName == null)
+                    string fullName = null;
+                    if (s_ResourceFullNames.TryGetValue(this, out fullName))
                     {
-                        m_CachedFullName = m_Variant != null ? Utility.Text.Format("{0}.{1}.{2}", m_Name, m_Variant, m_Extension) : Utility.Text.Format("{0}.{1}", m_Name, m_Extension);
+                        return fullName;
                     }
 
-                    return m_CachedFullName;
+                    fullName = m_Variant != null ? Utility.Text.Format("{0}.{1}.{2}", m_Name, m_Variant, m_Extension) : Utility.Text.Format("{0}.{1}", m_Name, m_Extension);
+                    s_ResourceFullNames.Add(this, fullName);
+                    return fullName;
                 }
             }
 
@@ -113,7 +119,7 @@ namespace GameFramework.Resource
 
             public bool Equals(ResourceName value)
             {
-                return m_Name == value.m_Name && m_Variant == value.m_Variant && m_Extension == value.m_Extension;
+                return string.Equals(m_Name, value.m_Name, StringComparison.Ordinal) && string.Equals(m_Variant, value.m_Variant, StringComparison.Ordinal) && string.Equals(m_Extension, value.m_Extension, StringComparison.Ordinal);
             }
 
             public static bool operator ==(ResourceName a, ResourceName b)
@@ -143,19 +149,19 @@ namespace GameFramework.Resource
 
             public int CompareTo(ResourceName resourceName)
             {
-                int result = string.Compare(m_Name, resourceName.m_Name);
+                int result = string.CompareOrdinal(m_Name, resourceName.m_Name);
                 if (result != 0)
                 {
                     return result;
                 }
 
-                result = string.Compare(m_Variant, resourceName.m_Variant);
+                result = string.CompareOrdinal(m_Variant, resourceName.m_Variant);
                 if (result != 0)
                 {
                     return result;
                 }
 
-                return string.Compare(m_Extension, resourceName.m_Extension);
+                return string.CompareOrdinal(m_Extension, resourceName.m_Extension);
             }
         }
     }
