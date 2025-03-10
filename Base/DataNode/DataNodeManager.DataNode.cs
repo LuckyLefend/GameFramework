@@ -55,10 +55,7 @@ namespace GameFramework.DataNode
             /// </summary>
             public string Name
             {
-                get
-                {
-                    return m_Name;
-                }
+                get { return m_Name; }
             }
 
             /// <summary>
@@ -68,7 +65,9 @@ namespace GameFramework.DataNode
             {
                 get
                 {
-                    return m_Parent == null ? m_Name : Utility.Text.Format("{0}{1}{2}", m_Parent.FullName, PathSplitSeparator[0], m_Name);
+                    return m_Parent == null
+                        ? m_Name
+                        : Utility.Text.Format("{0}{1}{2}", m_Parent.FullName, PathSplitSeparator[0], m_Name);
                 }
             }
 
@@ -77,10 +76,7 @@ namespace GameFramework.DataNode
             /// </summary>
             public IDataNode Parent
             {
-                get
-                {
-                    return m_Parent;
-                }
+                get { return m_Parent; }
             }
 
             /// <summary>
@@ -88,10 +84,7 @@ namespace GameFramework.DataNode
             /// </summary>
             public int ChildCount
             {
-                get
-                {
-                    return m_Childs != null ? m_Childs.Count : 0;
-                }
+                get { return m_Childs != null ? m_Childs.Count : 0; }
             }
 
             /// <summary>

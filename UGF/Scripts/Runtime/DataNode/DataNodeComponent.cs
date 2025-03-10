@@ -25,10 +25,7 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         public IDataNode Root
         {
-            get
-            {
-                return m_DataNodeManager.Root;
-            }
+            get { return m_DataNodeManager.Root; }
         }
 
         /// <summary>

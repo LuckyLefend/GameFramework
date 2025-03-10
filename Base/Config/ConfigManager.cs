@@ -35,10 +35,7 @@ namespace GameFramework.Config
         /// </summary>
         public int Count
         {
-            get
-            {
-                return m_ConfigDatas.Count;
-            }
+            get { return m_ConfigDatas.Count; }
         }
 
         /// <summary>
@@ -46,10 +43,7 @@ namespace GameFramework.Config
         /// </summary>
         public int CachedBytesSize
         {
-            get
-            {
-                return DataProvider<IConfigManager>.CachedBytesSize;
-            }
+            get { return DataProvider<IConfigManager>.CachedBytesSize; }
         }
 
         /// <summary>
@@ -57,14 +51,8 @@ namespace GameFramework.Config
         /// </summary>
         public event EventHandler<ReadDataSuccessEventArgs> ReadDataSuccess
         {
-            add
-            {
-                m_DataProvider.ReadDataSuccess += value;
-            }
-            remove
-            {
-                m_DataProvider.ReadDataSuccess -= value;
-            }
+            add { m_DataProvider.ReadDataSuccess += value; }
+            remove { m_DataProvider.ReadDataSuccess -= value; }
         }
 
         /// <summary>
@@ -72,14 +60,8 @@ namespace GameFramework.Config
         /// </summary>
         public event EventHandler<ReadDataFailureEventArgs> ReadDataFailure
         {
-            add
-            {
-                m_DataProvider.ReadDataFailure += value;
-            }
-            remove
-            {
-                m_DataProvider.ReadDataFailure -= value;
-            }
+            add { m_DataProvider.ReadDataFailure += value; }
+            remove { m_DataProvider.ReadDataFailure -= value; }
         }
 
         /// <summary>
@@ -87,14 +69,8 @@ namespace GameFramework.Config
         /// </summary>
         public event EventHandler<ReadDataUpdateEventArgs> ReadDataUpdate
         {
-            add
-            {
-                m_DataProvider.ReadDataUpdate += value;
-            }
-            remove
-            {
-                m_DataProvider.ReadDataUpdate -= value;
-            }
+            add { m_DataProvider.ReadDataUpdate += value; }
+            remove { m_DataProvider.ReadDataUpdate -= value; }
         }
 
         /// <summary>
@@ -102,14 +78,8 @@ namespace GameFramework.Config
         /// </summary>
         public event EventHandler<ReadDataDependencyAssetEventArgs> ReadDataDependencyAsset
         {
-            add
-            {
-                m_DataProvider.ReadDataDependencyAsset += value;
-            }
-            remove
-            {
-                m_DataProvider.ReadDataDependencyAsset -= value;
-            }
+            add { m_DataProvider.ReadDataDependencyAsset += value; }
+            remove { m_DataProvider.ReadDataDependencyAsset -= value; }
         }
 
         /// <summary>

@@ -29,10 +29,7 @@ namespace GameFramework.Event
         /// </summary>
         public int EventHandlerCount
         {
-            get
-            {
-                return m_EventPool.EventHandlerCount;
-            }
+            get { return m_EventPool.EventHandlerCount; }
         }
 
         /// <summary>
@@ -40,10 +37,7 @@ namespace GameFramework.Event
         /// </summary>
         public int EventCount
         {
-            get
-            {
-                return m_EventPool.EventCount;
-            }
+            get { return m_EventPool.EventCount; }
         }
 
         /// <summary>
@@ -52,10 +46,7 @@ namespace GameFramework.Event
         /// <remarks>优先级较高的模块会优先轮询，并且关闭操作会后进行。</remarks>
         internal override int Priority
         {
-            get
-            {
-                return 7;
-            }
+            get { return 7; }
         }
 
         /// <summary>

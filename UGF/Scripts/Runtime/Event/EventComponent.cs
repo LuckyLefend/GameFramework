@@ -26,10 +26,7 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         public int EventHandlerCount
         {
-            get
-            {
-                return m_EventManager.EventHandlerCount;
-            }
+            get { return m_EventManager.EventHandlerCount; }
         }
 
         /// <summary>
@@ -37,10 +34,7 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         public int EventCount
         {
-            get
-            {
-                return m_EventManager.EventCount;
-            }
+            get { return m_EventManager.EventCount; }
         }
 
         /// <summary>
